@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="netlify-email-obfuscation" content="off">
+<title>Wortschatz - Alpha v2.3</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script>
+  // Apply saved theme before CSS paint to avoid flash
+  const _t = localStorage.getItem('wortschatz-theme-v1');
+  if (_t) document.documentElement.setAttribute('data-theme', _t);
+</script>
+<style>
+  /* === THEMES === */
+
+/* Hard fallback on :root - ensures variables always exist */
+:root {
+--bg: #121212;
+--surface: #1e1e1e;
+--surface2: #2a2a2a;
+--border: #333333;
+--accent: #00BCD4;
+--accent2: #80CBC4;
+--text: #E0E0E0;
+--text-muted: #888888;
+--text-dim: #555555;
+--green: #8BC34A;
+--red: #FF5722;
+--der: #7eb8f7;
+--die: #f78eb8;
+--das: #b8f7a0;
+}
+
+/* System: light mode auto-apply (only when no manual theme is set) */
+@media (prefers-color-scheme: light) {
+:root:not([data-theme]) {
+--bg: #FFFFFF;
+--surface: #F4F4F4;
+--surface2: #E8E8E8;
+--border: #CCCCCC;
+--accent: #4A90E2;
+--accent2: #357ABD;
+--text: #1E1E1E;
+--text-muted: #666666;
+--text-dim: #AAAAAA;
+--green: #4CAF50;
+--red: #F44336;
+--der: #4A90E2;
+--die: #E91E8C;
+--das: #4CAF50;
+}
+}
+
+/* Light theme */
+[data-theme="light"] {
+--bg: #FFFFFF;
+--surface: #F4F4F4;
+--surface2: #E8E8E8;
+--border: #CCCCCC;
+--accent: #4A90E2;
+--accent2: #357ABD;
+--text: #1E1E1E;
+--text-muted: #666666;
+--text-dim: #AAAAAA;
+--green: #4CAF50;
+--red: #F44336;
+--der: #4A90E2;
+--die: #E91E8C;
+--das: #4CAF50;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+--bg: #121212;
+--surface: #1e1e1e;
+--surface2: #2a2a2a;
+--border: #333333;
+--accent: #00BCD4;
+--accent2: #80CBC4;
+--text: #E0E0E0;
+--text-muted: #888888;
+--text-dim: #555555;
+--green: #8BC34A;
+--red: #FF5722;
+--der: #7eb8f7;
+--die: #f78eb8;
+--das: #b8f7a0;
+}
+
+/* Pastel theme */
+[data-theme="pastel"] {
+--bg: #FFF8E7;
+--surface: #FFF0D6;
+--surface2: #FFE4C4;
+--border: #DDCCB0;
+--accent: #FF8C94;
+--accent2: #80CBC4;
+--text: #4B4B4B;
+--text-muted: #8A7A6A;
+--text-dim: #BBAA99;
+--green: #A7E3A1;
+--red: #FF7F7F;
+--der: #80CBC4;
+--die: #FF8C94;
+--das: #A7E3A1;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+overflow-x: hidden;
+max-width: 100%;
+}
+
+body {
+background: var(--bg);
+color: var(--text);
+font-family: 'DM Sans', sans-serif;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0 16px 40px;
+background-image: radial-gradient(ellipse at 20% 0%, rgba(232,197,71,0.04) 0%, transparent 60%),
+radial-gradient(ellipse at 80% 100%, rgba(196,149,106,0.04) 0%, transparent 60%);
+}
+
+header {
+width: 100%;
+max-width: 680px;
+padding: 32px 0 20px;
+display: flex;
+align-items: center;
+gap: 16px;
+border-bottom: 1px solid var(--border);
+margin-bottom: 32px;
+}
+
+.logo {
+font-family: 'Playfair Display', serif;
+font-size: 28px;
+color: var(--accent);
+letter-spacing: -0.5px;
+}
+
+.logo span {
+color: var(--text-muted);
+font-style: italic;
+font-size: 14px;
+font-family: 'DM Mono', monospace;
+font-weight: 300;
+}
+
+.stats-bar {
+margin-left: auto;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 8px;
+}
+
+.stats-box {
+display: flex;
+gap: 0;
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 10px;
+overflow: hidden;
+}
+
+.stat {
+text-align: center;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 2px;
+padding: 7px 13px;
+border-right: 1px solid var(--border);
+}
+
+.stat:last-child { border-right: none; }
+
+.stat-num {
+font-family: 'Playfair Display', serif;
+font-size: 20px;
+color: var(--accent);
+line-height: 1;
+}
+
+.stat-label {
+font-size: 8px;
+color: var(--text-muted);
+text-transform: uppercase;
+letter-spacing: 1px;
+font-family: 'DM Mono', monospace;
+}
+
+.streak-num { color: var(--accent2); }
+
+.reset-btn {
+background: none;
+border: 1px solid var(--border);
+border-radius: 5px;
+color: var(--text-dim);
+font-family: 'DM Mono', monospace;
+font-size: 8px;
+padding: 2px 10px;
+cursor: pointer;
+letter-spacing: 0.5px;
+transition: all 0.15s;
+line-height: 1.4;
+width: 100%;
+}
+
+.reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+.reset-settings-row {
+display: flex;
+align-items: center;
+gap: 6px;
+width: 100%;
+}
+
+.settings-wrap {
+position: relative;
+display: flex;
+justify-content: flex-end;
+margin-bottom: 16px;
+}
+
+.settings-gear-btn {
+background: none;
+border: 1px solid var(--border, #333);
+border-radius: 7px;
+color: var(--text-dim, #555);
+font-size: 13px;
+padding: 4px 8px;
+cursor: pointer;
+transition: all 0.15s;
+line-height: 1;
+}
+
+.settings-gear-btn:hover { border-color: var(--accent, #00BCD4); color: var(--accent, #00BCD4); }
+.settings-gear-btn.open  { border-color: var(--accent, #00BCD4); color: var(--accent, #00BCD4); }
+
+.settings-panel {
+display: none;
+position: fixed;
+right: 16px;
+top: auto;
+background: var(--surface, #1e1e1e);
+border: 1px solid var(--border, #333);
+border-radius: 10px;
+overflow: hidden;
+min-width: 190px;
+z-index: 500;
+box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.settings-panel.open { display: block; }
+
+.settings-item {
+display: block;
+width: 100%;
+padding: 10px 16px;
+background: none;
+border: none;
+border-bottom: 1px solid var(--border);
+color: var(--text-muted);
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+text-align: left;
+cursor: pointer;
+transition: all 0.15s;
+letter-spacing: 0.3px;
+}
+
+.settings-item:last-child { border-bottom: none; }
+.settings-item:hover { background: var(--surface2); color: var(--text); }
+.settings-item:disabled { opacity: 0.4; cursor: not-allowed; background: var(--surface2); }
+
+.modal-overlay {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.7);
+z-index: 1000;
+align-items: center;
+justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+background: var(--surface, #1e1e1e);
+border: 1px solid var(--border, #333333);
+border-radius: 14px;
+padding: 36px 32px;
+max-width: 340px;
+width: 90%;
+text-align: center;
+box-shadow: 0 16px 48px rgba(0,0,0,0.8);
+position: relative;
+z-index: 1001;
+}
+
+.modal-title {
+font-family: 'Playfair Display', serif;
+font-size: 22px;
+color: var(--accent);
+margin-bottom: 20px;
+}
+
+.modal-body {
+font-family: 'DM Mono', monospace;
+font-size: 13px;
+color: var(--text-muted);
+line-height: 1.8;
+}
+
+.modal-body strong {
+display: block;
+color: var(--text);
+font-size: 15px;
+margin-bottom: 4px;
+}
+
+.modal-body a {
+color: var(--accent);
+text-decoration: none;
+}
+
+.modal-body a:hover { text-decoration: underline; }
+
+.modal-close {
+margin-top: 24px;
+padding: 9px 28px;
+background: transparent;
+border: 1px solid var(--border);
+border-radius: 8px;
+color: var(--text-muted);
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.15s;
+letter-spacing: 0.5px;
+}
+
+.modal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+.theme-submenu {
+display: none;
+padding: 10px 12px;
+gap: 6px;
+border-bottom: 1px solid var(--border);
+background: var(--surface2);
+flex-direction: column;
+}
+
+.theme-submenu.open { display: flex; }
+
+.theme-option {
+padding: 7px 12px;
+border-radius: 6px;
+border: 1px solid var(--border);
+background: var(--surface);
+color: var(--text-muted);
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.15s;
+text-align: left;
+}
+
+.theme-option:hover { border-color: var(--accent); color: var(--text); }
+.theme-option.active { border-color: var(--accent); color: var(--accent); cursor: not-allowed; opacity: 0.7; }
+
+main {
+width: 100%;
+max-width: 680px;
+}
+
+/* TABS */
+.tabs {
+display: flex;
+gap: 4px;
+align-items: center;
+margin-bottom: 28px;
+background: var(--surface);
+padding: 4px;
+border-radius: 10px;
+border: 1px solid var(--border);
+}
+
+.tab {
+flex: 1;
+padding: 8px 12px;
+border: none;
+background: transparent;
+color: var(--text-muted);
+cursor: pointer;
+border-radius: 7px;
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+transition: all 0.2s;
+}
+
+.tab:hover { color: var(--text); }
+.tab.active {
+background: var(--surface2);
+color: var(--accent);
+border: 1px solid var(--border);
+}
+
+/* PRACTICE CARD */
+.card {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 32px 24px;
+position: relative;
+overflow: hidden;
+box-sizing: border-box;
+width: 100%;
+}
+
+.card::before {
+content: '';
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 2px;
+background: linear-gradient(90deg, transparent, var(--accent), transparent);
+opacity: 0.4;
+}
+
+.mode-badge {
+font-family: 'DM Mono', monospace;
+font-size: 10px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(--text-dim);
+margin-bottom: 28px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.mode-badge::before {
+content: '';
+width: 20px;
+height: 1px;
+background: var(--text-dim);
+}
+
+.question-area {
+margin-bottom: 36px;
+min-height: 100px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.question-label {
+font-size: 12px;
+color: var(--text-muted);
+margin-bottom: 12px;
+font-family: 'DM Mono', monospace;
+}
+
+.question-word {
+font-family: 'Playfair Display', serif;
+font-size: 52px;
+line-height: 1.1;
+color: var(--text);
+letter-spacing: -1px;
+}
+
+.question-word .article {
+color: var(--accent2);
+font-style: italic;
+}
+
+/* Article quiz buttons */
+.article-choices {
+display: flex;
+gap: 12px;
+margin-top: 8px;
+}
+
+.article-btn {
+flex: 1;
+padding: 20px;
+border: 1px solid var(--border);
+border-radius: 10px;
+background: var(--surface2);
+cursor: pointer;
+font-family: 'Playfair Display', serif;
+font-size: 24px;
+color: var(--text);
+transition: all 0.15s;
+position: relative;
+overflow: hidden;
+}
+
+.article-btn:hover {
+border-color: var(--accent);
+color: var(--accent);
+transform: translateY(-2px);
+}
+
+.article-btn .article-label {
+display: block;
+font-size: 10px;
+font-family: 'DM Mono', monospace;
+letter-spacing: 1px;
+color: var(--text-muted);
+margin-top: 4px;
+}
+
+.article-btn.der-btn { }
+.article-btn.die-btn { }
+.article-btn.das-btn { }
+.article-btn.correct { background: rgba(111,207,151,0.15); border-color: var(--green); color: var(--green); }
+.article-btn.wrong { background: rgba(235,87,87,0.1); border-color: var(--red); color: var(--red); }
+
+/* Text input area */
+.answer-row {
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+align-items: stretch;
+}
+
+.answer-input {
+flex: 1;
+min-width: 0;
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 10px;
+padding: 16px 20px;
+color: var(--text);
+font-family: 'DM Mono', monospace;
+font-size: 18px;
+outline: none;
+transition: border-color 0.2s;
+width: 100%;
+}
+
+.answer-input:focus { border-color: var(--accent); }
+.answer-input.correct { border-color: var(--green); background: rgba(111,207,151,0.08); }
+.answer-input.wrong { border-color: var(--red); background: rgba(235,87,87,0.06); }
+.answer-input::placeholder { color: var(--text-dim); }
+
+.submit-btn {
+padding: 16px 28px;
+background: var(--accent);
+color: #0f0e0c;
+border: none;
+border-radius: 10px;
+cursor: pointer;
+font-family: 'DM Mono', monospace;
+font-size: 13px;
+font-weight: 500;
+letter-spacing: 0.5px;
+transition: all 0.15s;
+white-space: nowrap;
+flex-shrink: 0;
+}
+
+.submit-btn:hover { background: #f0d060; transform: translateY(-1px); }
+.submit-btn:active { transform: translateY(0); }
+
+.feedback {
+margin-top: 16px;
+padding: 14px 18px;
+border-radius: 8px;
+font-family: 'DM Mono', monospace;
+font-size: 13px;
+min-height: 48px;
+transition: all 0.3s;
+opacity: 0;
+}
+
+.feedback.show { opacity: 1; }
+.feedback.correct { background: rgba(111,207,151,0.1); color: var(--green); border: 1px solid rgba(111,207,151,0.2); }
+.feedback.wrong { background: rgba(235,87,87,0.08); color: var(--red); border: 1px solid rgba(235,87,87,0.15); }
+
+.next-btn {
+margin-top: 24px;
+width: 100%;
+padding: 14px;
+background: transparent;
+border: 1px solid var(--border);
+border-radius: 10px;
+color: var(--text-muted);
+cursor: pointer;
+font-family: 'DM Mono', monospace;
+font-size: 12px;
+letter-spacing: 1px;
+text-transform: uppercase;
+transition: all 0.2s;
+display: none;
+}
+
+.next-btn:hover { border-color: var(--accent); color: var(--accent); }
+.next-btn.show { display: block; }
+
+/* MODE SELECTOR */
+.mode-selector {
+display: flex;
+gap: 8px;
+margin-bottom: 20px;
+flex-wrap: wrap;
+}
+
+.mode-pill {
+padding: 6px 14px;
+border: 1px solid var(--border);
+border-radius: 20px;
+background: transparent;
+color: var(--text-muted);
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.2s;
+letter-spacing: 0.5px;
+}
+
+.mode-pill:hover { border-color: var(--accent2); color: var(--accent2); }
+.mode-pill.active { background: var(--accent2); border-color: var(--accent2); color: #0f0e0c; }
+
+/* WORD LIST TAB */
+.word-list-section { display: none; }
+.word-list-section.active { display: block; }
+.practice-section.active { display: block; }
+.practice-section { display: none; }
+
+.add-word-form {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 24px;
+margin-bottom: 20px;
+}
+
+.add-word-form h3 {
+font-family: 'Playfair Display', serif;
+font-size: 18px;
+margin-bottom: 16px;
+color: var(--accent);
+}
+
+.form-row {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+}
+
+.form-field {
+flex: 1;
+min-width: 140px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.form-field label {
+font-size: 10px;
+font-family: 'DM Mono', monospace;
+color: var(--text-muted);
+letter-spacing: 1px;
+text-transform: uppercase;
+}
+
+.form-input, .form-select {
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 10px 14px;
+color: var(--text);
+font-family: 'DM Mono', monospace;
+font-size: 14px;
+outline: none;
+transition: border-color 0.2s;
+width: 100%;
+}
+
+.form-input:focus, .form-select:focus { border-color: var(--accent); }
+.form-select option { background: var(--surface2); }
+
+.add-btn {
+align-self: flex-end;
+padding: 10px 24px;
+background: var(--accent);
+color: #0f0e0c;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-family: 'DM Mono', monospace;
+font-size: 12px;
+font-weight: 500;
+transition: all 0.15s;
+white-space: nowrap;
+min-width: 80px;
+}
+
+.add-btn:hover { background: #f0d060; }
+
+.word-table {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 12px;
+overflow: hidden;
+}
+
+.word-table-header {
+display: grid;
+grid-template-columns: 40px 1fr 1fr 80px 60px;
+padding: 12px 16px;
+border-bottom: 1px solid var(--border);
+font-family: 'DM Mono', monospace;
+font-size: 10px;
+color: var(--text-dim);
+letter-spacing: 1px;
+text-transform: uppercase;
+}
+
+.word-list-scroll {
+max-height: 420px;
+overflow-y: auto;
+position: relative;
+}
+
+.word-list-scroll::-webkit-scrollbar { width: 6px; }
+.word-list-scroll::-webkit-scrollbar-track { background: transparent; }
+.word-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.word-list-spacer {
+position: relative;
+width: 100%;
+}
+
+.word-row {
+display: grid;
+grid-template-columns: 40px 1fr 1fr 80px 60px;
+padding: 0 16px;
+border-bottom: 1px solid var(--border);
+align-items: center;
+font-size: 14px;
+position: absolute;
+left: 0;
+right: 0;
+box-sizing: border-box;
+background: var(--surface);
+transition: background 0.15s;
+height: 44px;
+}
+
+.word-row:hover { background: var(--surface2); }
+
+.word-row .german { font-family: 'Playfair Display', serif; }
+.word-row .english { color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 13px; }
+
+.article-tag {
+padding: 3px 8px;
+border-radius: 4px;
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+font-weight: 500;
+}
+
+.tag-der { background: rgba(126,184,247,0.15); color: var(--der); }
+.tag-die { background: rgba(247,142,184,0.15); color: var(--die); }
+.tag-das { background: rgba(184,247,160,0.15); color: var(--das); }
+.tag-verb { background: rgba(232,197,71,0.15); color: var(--accent); }
+
+.type-tag {
+font-family: 'DM Mono', monospace;
+font-size: 10px;
+color: var(--text-dim);
+}
+
+/* STRENGTH INDICATOR */
+.error-badge {
+background: var(--red);
+color: #fff;
+font-family: 'DM Mono', monospace;
+font-size: 10px;
+font-weight: 700;
+padding: 2px 6px;
+border-radius: 10px;
+min-width: 20px;
+text-align: center;
+display: inline-block;
+}
+
+.word-table-header,
+.word-row {
+display: grid;
+grid-template-columns: 32px 1fr 1fr 60px 36px 36px;
+align-items: center;
+gap: 8px;
+padding: 0 12px;
+}
+
+.mode-pill.hard-words-pill {
+border-color: var(--red);
+color: var(--red);
+}
+
+.mode-pill.hard-words-pill.active {
+background: var(--red);
+color: #fff;
+border-color: var(--red);
+}
+
+.mode-pill.hard-words-pill:disabled {
+opacity: 0.35;
+cursor: not-allowed;
+pointer-events: none;
+}
+
+/* STRENGTH INDICATOR */
+.strength-bar {
+display: flex;
+gap: 4px;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.strength-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background: var(--border);
+transition: background 0.3s;
+}
+
+.strength-dot.filled { background: var(--green); }
+
+.strength-label {
+font-family: 'DM Mono', monospace;
+font-size: 9px;
+color: var(--text-dim);
+letter-spacing: 1px;
+text-transform: uppercase;
+margin-left: 6px;
+}
+
+/* VOICE BUTTON */
+.voice-row {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 12px;
+}
+
+.voice-btn {
+display: flex;
+align-items: center;
+gap: 7px;
+padding: 8px 16px;
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+color: var(--text-muted);
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.15s;
+letter-spacing: 0.5px;
+}
+
+.voice-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.voice-btn.speaking { border-color: var(--accent2); color: var(--accent2); background: rgba(196,149,106,0.1); }
+.voice-btn.unsupported { opacity: 0.3; cursor: not-allowed; }
+
+.auto-speak-toggle {
+display: flex;
+align-items: center;
+gap: 6px;
+font-family: 'DM Mono', monospace;
+font-size: 10px;
+color: var(--text-dim);
+cursor: pointer;
+user-select: none;
+margin-left: auto;
+}
+
+.auto-speak-toggle input { accent-color: var(--accent2); cursor: pointer; }
+.auto-speak-toggle:hover { color: var(--text-muted); }
+
+.delete-btn {
+background: none;
+border: none;
+color: var(--text-dim);
+cursor: pointer;
+font-size: 16px;
+padding: 4px 8px;
+border-radius: 4px;
+transition: all 0.15s;
+}
+
+.delete-btn:hover { color: var(--red); background: rgba(235,87,87,0.1); }
+
+/* Progress bar */
+.progress-bar {
+width: 100%;
+height: 3px;
+background: var(--surface2);
+border-radius: 2px;
+margin-bottom: 20px;
+overflow: hidden;
+}
+
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, var(--accent2), var(--accent));
+border-radius: 2px;
+transition: width 0.5s ease;
+}
+
+.empty-state {
+padding: 40px;
+text-align: center;
+color: var(--text-dim);
+font-family: 'DM Mono', monospace;
+font-size: 13px;
+}
+
+/* IMPORT SECTION */
+.import-section {
+background: var(--surface);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 24px;
+margin-bottom: 20px;
+}
+
+.import-section h3 {
+font-family: 'Playfair Display', serif;
+font-size: 18px;
+margin-bottom: 6px;
+color: var(--accent);
+}
+
+.import-hint {
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+color: var(--text-muted);
+margin-bottom: 14px;
+line-height: 1.7;
+}
+
+.import-hint code {
+background: var(--surface2);
+padding: 1px 6px;
+border-radius: 4px;
+color: var(--accent2);
+font-size: 11px;
+}
+
+.import-textarea {
+width: 100%;
+background: var(--surface2);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 14px 16px;
+color: var(--text);
+font-family: 'DM Mono', monospace;
+font-size: 13px;
+outline: none;
+resize: vertical;
+min-height: 120px;
+line-height: 1.7;
+transition: border-color 0.2s;
+margin-bottom: 12px;
+}
+
+.import-textarea:focus { border-color: var(--accent); }
+.import-textarea::placeholder { color: var(--text-dim); }
+
+.import-actions {
+display: flex;
+gap: 10px;
+align-items: center;
+}
+
+.import-btn {
+padding: 10px 24px;
+background: var(--accent);
+color: #0f0e0c;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-family: 'DM Mono', monospace;
+font-size: 12px;
+font-weight: 500;
+transition: all 0.15s;
+}
+
+.import-btn:hover { background: #f0d060; }
+
+.import-clear-btn {
+padding: 10px 16px;
+background: transparent;
+border: 1px solid var(--border);
+border-radius: 8px;
+color: var(--text-muted);
+cursor: pointer;
+font-family: 'DM Mono', monospace;
+font-size: 12px;
+transition: all 0.15s;
+}
+
+.import-clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+.import-feedback {
+font-family: 'DM Mono', monospace;
+font-size: 12px;
+margin-left: auto;
+padding: 6px 12px;
+border-radius: 6px;
+display: none;
+}
+
+.import-feedback.ok { display: block; color: var(--green); background: rgba(111,207,151,0.1); }
+.import-feedback.err { display: block; color: var(--red); background: rgba(235,87,87,0.08); }
+
+.import-toggle {
+background: none;
+border: none;
+color: var(--accent2);
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+cursor: pointer;
+letter-spacing: 0.5px;
+padding: 0;
+margin-bottom: 14px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.import-toggle:hover { color: var(--accent); }
+.import-body { display: none; }
+.import-body.open { display: block; }
+
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+20% { transform: translateX(-8px); }
+40% { transform: translateX(8px); }
+60% { transform: translateX(-4px); }
+80% { transform: translateX(4px); }
+}
+
+@keyframes pop {
+0% { transform: scale(1); }
+50% { transform: scale(1.05); }
+100% { transform: scale(1); }
+}
+
+.shake { animation: shake 0.4s ease; }
+.pop { animation: pop 0.3s ease; }
+
+.progress-section {
+margin-top: 24px;
+padding: 16px 20px;
+background: var(--surface2);
+border-radius: 10px;
+border: 1px solid var(--border);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.progress-text {
+font-family: 'DM Mono', monospace;
+font-size: 12px;
+color: var(--text-muted);
+}
+
+.progress-text strong { color: var(--text); }
+
+/* Confetti-like correct flash */
+@keyframes flashGreen {
+0% { border-color: var(--border); }
+30% { border-color: var(--green); box-shadow: 0 0 20px rgba(111,207,151,0.2); }
+100% { border-color: var(--border); }
+}
+
+.flash-correct { animation: flashGreen 0.8s ease forwards; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Wortschatz <span>// alpha v2.3</span></div>
+  </div>
+  <div class="stats-bar">
+    <div class="stats-box">
+      <div class="stat">
+        <div class="stat-num" id="score-correct">0</div>
+        <div class="stat-label">Correct</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" style="color:var(--red)" id="score-wrong">0</div>
+        <div class="stat-label">Wrong</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num streak-num" id="score-streak">0</div>
+        <div class="stat-label">Streak</div>
+      </div>
+    </div>
+    <div class="reset-settings-row">
+      <button class="reset-btn" onclick="resetScore()">reset score</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('practice')">Practice</button>
+    <button class="tab" onclick="switchTab('words')">Word List</button>
+  </div>
+
+  <div class="settings-wrap">
+    <button class="settings-gear-btn" id="settings-gear-btn" onclick="toggleSettings()" title="Settings">⚙</button>
+    <div class="settings-panel" id="settings-panel">
+      <button class="settings-item" onclick="toggleThemeSubmenu()">🎨 Theme ▸</button>
+      <div class="theme-submenu" id="theme-submenu">
+        <button class="theme-option" id="theme-btn-system" onclick="setTheme('system')">⚙ System Default</button>
+        <button class="theme-option" id="theme-btn-light"  onclick="setTheme('light')">☀️ Light</button>
+        <button class="theme-option" id="theme-btn-dark"   onclick="setTheme('dark')">🌙 Dark</button>
+        <button class="theme-option" id="theme-btn-pastel" onclick="setTheme('pastel')">🌸 Pastel</button>
+      </div>
+      <button class="settings-item" onclick="resetScore(); closeSettings()">🔄 Reset</button>
+      <button class="settings-item haptics-toggle" id="haptics-toggle" onclick="toggleHaptics()">📳 Haptics: <span id="haptics-state">ON</span></button>
+      <button class="settings-item" onclick="openAbout()">ℹ️ About</button>
+    </div>
+  </div>
+
+  <div class="practice-section active" id="tab-practice">
+    <div class="mode-selector">
+      <button class="mode-pill active" onclick="setMode('mixed', this)">🎲 Mixed</button>
+      <button class="mode-pill" onclick="setMode('de-en', this)">🇩🇪 → 🇬🇧</button>
+      <button class="mode-pill" onclick="setMode('en-de', this)">🇬🇧 → 🇩🇪</button>
+      <button class="mode-pill" onclick="setMode('article', this)">Der/Die/Das?</button>
+      <button class="mode-pill hard-words-pill" id="hard-words-pill" onclick="setMode('hard', this)">🔥 Hard Words</button>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="card" id="practice-card">
+      <div class="mode-badge" id="mode-label">Mixed Mode</div>
+
+      <div class="strength-bar" id="strength-bar">
+        <div class="strength-dot" id="sd-0"></div>
+        <div class="strength-dot" id="sd-1"></div>
+        <div class="strength-dot" id="sd-2"></div>
+        <div class="strength-dot" id="sd-3"></div>
+        <div class="strength-dot" id="sd-4"></div>
+        <span class="strength-label" id="strength-label">new</span>
+      </div>
+
+      <div class="question-area">
+        <div class="question-label" id="q-label">Translate to English:</div>
+        <div class="question-word" id="q-word">Loading...</div>
+      </div>
+
+      <div class="article-choices" id="article-choices" style="display:none">
+        <button class="article-btn der-btn" onclick="checkArticle('der')">
+          der
+          <span class="article-label">masculine</span>
+        </button>
+        <button class="article-btn die-btn" onclick="checkArticle('die')">
+          die
+          <span class="article-label">feminine</span>
+        </button>
+        <button class="article-btn das-btn" onclick="checkArticle('das')">
+          das
+          <span class="article-label">neuter</span>
+        </button>
+      </div>
+
+      <div class="voice-row">
+        <button class="voice-btn" id="voice-btn" onclick="speakQuestion()">
+          <span class="voice-icon">🔊</span> Pronounce
+        </button>
+        <label class="auto-speak-toggle">
+          <input type="checkbox" id="auto-speak"> auto-play
+        </label>
+      </div>
+
+      <div class="answer-row" id="answer-row">
+        <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">
+        <button class="submit-btn" onclick="checkAnswer()">Check</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>
+
+      <div class="progress-section">
+        <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen</div>
+        <div class="progress-text" style="color: var(--text-dim); font-size:11px;">Press Enter to check or continue</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="word-list-section" id="tab-words">
+    <div class="import-section">
+      <h3>Bulk Import</h3>
+      <button class="import-toggle" onclick="toggleImport()">
+        <span id="import-arrow">▶</span> Show format guide & paste area
+      </button>
+      <div class="import-body" id="import-body">
+        <div class="import-hint">
+          Paste one word per line. Supported formats:<br>
+          Noun: <code>der Hund - dog</code> &nbsp;|&nbsp; <code>die große Katze - big cat</code> &nbsp;|&nbsp; <code>das Buch = book</code><br>
+          Verb: <code>gehen - to go</code> &nbsp;|&nbsp; <code>schlafen, to sleep</code> (no article = treated as verb)<br>
+          Also accepts: <code>Hund, der, dog</code>
+        </div>
+        <textarea class="import-textarea" id="import-textarea" placeholder="der Hund - dog&#10;die Katze - cat&#10;das Buch - book&#10;gehen - to go&#10;sprechen - to speak"></textarea>
+        <div class="import-actions">
+          <button class="import-btn" onclick="importWords()">Import Words</button>
+          <button class="import-clear-btn" onclick="document.getElementById('import-textarea').value=''">Clear</button>
+          <span class="import-feedback" id="import-feedback"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="add-word-form">
+      <h3>Add a Word</h3>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Type</label>
+          <select class="form-select" id="word-type" onchange="toggleArticleField()">
+            <option value="noun">Noun</option>
+            <option value="verb">Verb</option>
+          </select>
+        </div>
+        <div class="form-field" id="article-field">
+          <label>Article</label>
+          <select class="form-select" id="word-article">
+            <option value="der">der</option>
+            <option value="die">die</option>
+            <option value="das">das</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>German</label>
+          <input type="text" class="form-input" id="word-german" placeholder="z.B. Haus">
+        </div>
+        <div class="form-field">
+          <label>English</label>
+          <input type="text" class="form-input" id="word-english" placeholder="e.g. house">
+        </div>
+        <div class="form-field" style="justify-content: flex-end; min-width:80px; max-width:80px">
+          <label>&nbsp;</label>
+          <button class="add-btn" onclick="addWord()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="word-table">
+      <div class="word-table-header">
+        <span>#</span>
+        <span>German</span>
+        <span>English</span>
+        <span>Article</span>
+        <span>❌</span>
+        <span>Del</span>
+      </div>
+      <div class="word-list-scroll" id="word-list-scroll">
+        <div class="word-list-spacer" id="word-list-spacer">
+          <div id="word-list-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ---- WORD DATA ----
+let words = [
+  // Nouns
+  { type: 'noun', article: 'das', german: 'Haus', english: 'house', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'der', german: 'Mann', english: 'man', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Frau', english: 'woman', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Kind', english: 'child', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Auto', english: 'car', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Schule', english: 'school', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Buch', english: 'book', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'der', german: 'Hund', english: 'dog', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Katze', english: 'cat', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Wasser', english: 'water', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Stadt', english: 'city', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'der', german: 'Tag', english: 'day', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Nacht', english: 'night', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Jahr', english: 'year', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'der', german: 'Weg', english: 'way / path', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Zeit', english: 'time', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Leben', english: 'life', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'der', german: 'Tisch', english: 'table', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'die', german: 'Tür', english: 'door', strength: 0, wrongCount: 0 },
+  { type: 'noun', article: 'das', german: 'Fenster', english: 'window', strength: 0, wrongCount: 0 },
+  // Verbs
+  { type: 'verb', article: null, german: 'gehen', english: 'to go', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'kommen', english: 'to come', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'machen', english: 'to make / to do', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'sehen', english: 'to see', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'sprechen', english: 'to speak', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'essen', english: 'to eat', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'trinken', english: 'to drink', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'schlafen', english: 'to sleep', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'lesen', english: 'to read', strength: 0, wrongCount: 0 },
+  { type: 'verb', article: null, german: 'schreiben', english: 'to write', strength: 0, wrongCount: 0 },
+];
+
+let currentMode = 'mixed';
+let currentQuestion = null;
+let questionType = null;
+let answered = false;
+let correct = 0, wrong = 0, streak = 0;
+let wordsSeen = new Set();
+let sessionQueue = [];
+
+const SCORE_KEY = 'wortschatz-score-v1';
+
+function saveScore() {
+  try {
+    localStorage.setItem(SCORE_KEY, JSON.stringify({
+      correct, wrong, streak,
+      wordsSeen: [...wordsSeen]
+    }));
+  } catch(e) {}
+}
+
+function loadScore() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SCORE_KEY));
+    if (s) {
+      correct = s.correct || 0;
+      wrong = s.wrong || 0;
+      streak = s.streak || 0;
+      wordsSeen = new Set(s.wordsSeen || []);
+    }
+  } catch(e) {}
+}
+
+function resetScore() {
+  correct = 0; wrong = 0; streak = 0; wordsSeen = new Set();
+  words.forEach(w => { w.strength = 0; w.wrongCount = 0; });
+  saveWords();
+  saveScore();
+  updateStats();
+  updateProgress();
+  updateHardWordsPill();
+}
+
+function normalizeWord(str) {
+  return str.trim().toLowerCase();
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function buildQueue() {
+  if (currentMode === 'hard') {
+    const hardWords = words.filter(w => (w.wrongCount || 0) > 0)
+      .sort((a, b) => (b.wrongCount || 0) - (a.wrongCount || 0));
+    sessionQueue = shuffle([...hardWords]);
+    return;
+  }
+  // SRS weighted queue
+  const weighted = [];
+  words.forEach(w => {
+    const weight = Math.max(1, 5 - (w.strength || 0));
+    for (let i = 0; i < weight; i++) weighted.push(w);
+  });
+  sessionQueue = shuffle(weighted);
+}
+
+function updateHardWordsPill() {
+  const pill = document.getElementById('hard-words-pill');
+  if (!pill) return;
+  const count = words.filter(w => (w.wrongCount || 0) > 0).length;
+  pill.textContent = count > 0 ? `🔥 Hard Words (${count})` : '🔥 Hard Words';
+  pill.disabled = count === 0;
+  pill.title = count === 0 ? 'No mistakes yet - keep practising!' : `${count} word${count > 1 ? 's' : ''} you have got wrong`;
+}
+
+function vibratePattern(type) {
+  if (!('vibrate' in navigator)) return;
+  if (localStorage.getItem('wortschatz-haptics') === 'off') return;
+  if (type === 'correct') navigator.vibrate(25);
+  if (type === 'wrong')   navigator.vibrate([60, 40, 60]);
+  if (type === 'tap')     navigator.vibrate(10);
+  if (type === 'next')    navigator.vibrate(8);
+  if (type === 'preview') navigator.vibrate([30, 30, 30]);
+}
+
+function updateStrength(word, isCorrect) {
+  const idx = words.findIndex(w => w.german === word.german);
+  if (idx === -1) return;
+  if (isCorrect) {
+    words[idx].strength = (words[idx].strength || 0) + 1;
+  } else {
+    words[idx].strength = 0;
+    words[idx].wrongCount = (words[idx].wrongCount || 0) + 1;
+  }
+  saveWords();
+  updateHardWordsPill();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['practice','words'][i] === tab));
+  document.getElementById('tab-practice').classList.toggle('active', tab === 'practice');
+  document.getElementById('tab-words').classList.toggle('active', tab === 'words');
+  if (tab === 'words') { renderWordList(); }
+}
+
+function setMode(mode, el) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  buildQueue();
+  wordsSeen.clear();
+  nextQuestion();
+}
+
+function updateStrengthBar(word) {
+  const s = word.strength || 0;
+  const MAX = 5;
+  for (let i = 0; i < MAX; i++) {
+    const dot = document.getElementById('sd-' + i);
+    if (dot) dot.classList.toggle('filled', i < s);
+  }
+  const labels = ['new', 'learning', 'familiar', 'strong', 'mastered', 'mastered'];
+  const lbl = document.getElementById('strength-label');
+  if (lbl) lbl.textContent = labels[Math.min(s, labels.length - 1)];
+}
+
+function pickQuestionType(word) {
+  const hasArticle = word.type === 'noun' && word.article;
+  if (word.type === 'verb' || !hasArticle) {
+    return Math.random() < 0.5 ? 'de-en' : 'en-de';
+  }
+  if (currentMode === 'de-en') return 'de-en';
+  if (currentMode === 'en-de') return 'en-de';
+  if (currentMode === 'article') return 'article';
+  // mixed
+  const r = Math.random();
+  if (r < 0.35) return 'de-en';
+  if (r < 0.7) return 'en-de';
+  return 'article';
+}
+
+function nextQuestion() {
+  if (sessionQueue.length === 0) {
+    if (currentMode === 'hard') {
+      const hardCount = words.filter(w => (w.wrongCount || 0) > 0).length;
+      if (hardCount === 0) {
+        document.getElementById('q-label').textContent = '';
+        document.getElementById('q-word').innerHTML = '🎉';
+        document.getElementById('mode-label').textContent = '🔥 Hard Words';
+        document.getElementById('feedback').className = 'feedback correct show';
+        document.getElementById('feedback').textContent = 'No mistakes yet! Keep practising in Mixed mode to build your hard list.';
+        document.getElementById('next-btn').className = 'next-btn';
+        document.getElementById('answer-row').style.display = 'none';
+        document.getElementById('article-choices').style.display = 'none';
+        return;
+      }
+      wordsSeen.clear();
+      buildQueue();
+      showRoundComplete();
+      return;
+    }
+    wordsSeen.clear();
+    buildQueue();
+    showRoundComplete();
+    return;
+  }
+  currentQuestion = sessionQueue.pop();
+  vibratePattern('next');
+  wordsSeen.add(currentQuestion.german);
+  questionType = pickQuestionType(currentQuestion);
+
+  answered = false;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').className = 'next-btn';
+  document.getElementById('answer-input').value = '';
+  document.getElementById('answer-input').className = 'answer-input';
+  document.querySelectorAll('.article-btn').forEach(b => b.className = b.className.replace(/ correct| wrong/g, ''));
+
+  // Show/hide article buttons vs text input
+  const isArticle = questionType === 'article';
+  document.getElementById('article-choices').style.display = isArticle ? 'flex' : 'none';
+  document.getElementById('answer-row').style.display = isArticle ? 'none' : 'flex';
+
+  // Build question display
+  const modeLabels = { 'de-en': '🇩🇪 German → English', 'en-de': '🇬🇧 English → German', 'article': 'Der / Die / Das?', 'hard': '🔥 Hard Words' };
+  document.getElementById('mode-label').textContent = currentMode === 'mixed' ? '🎲 Mixed - ' + modeLabels[questionType] : (modeLabels[currentMode] || modeLabels[questionType]);
+
+  let qLabel = '', qWord = '';
+  if (questionType === 'de-en') {
+    qLabel = 'Translate to English:';
+    const art = currentQuestion.article ? `<span class="article">${currentQuestion.article}</span> ` : '';
+    qWord = art + currentQuestion.german;
+  } else if (questionType === 'en-de') {
+    qLabel = 'Translate to German (with article if noun):';
+    qWord = currentQuestion.english;
+  } else {
+    qLabel = 'What is the article for:';
+    qWord = currentQuestion.german;
+  }
+
+  document.getElementById('q-label').textContent = qLabel;
+  document.getElementById('q-word').innerHTML = qWord;
+
+  if (!isArticle) {
+    setTimeout(() => document.getElementById('answer-input').focus(), 50);
+  }
+
+  updateStats();
+  updateProgress();
+  updateStrengthBar(currentQuestion);
+  autoSpeak();
+}
+
+function normalize(str) {
+  return str.trim().toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss');
+}
+
+function checkAnswer() {
+  if (answered) { nextQuestion(); return; }
+  const input = document.getElementById('answer-input');
+  const userAnswer = input.value.trim();
+  if (!userAnswer) return;
+
+  answered = true;
+  let isCorrect = false;
+  let correctAnswer = '';
+
+  if (questionType === 'de-en') {
+    correctAnswer = currentQuestion.english;
+    const userN = normalize(userAnswer);
+    const variants = correctAnswer.split('/').map(v => normalize(v.trim()));
+    isCorrect = variants.some(v => userN === v || userN.replace(/^to /, '') === v.replace(/^to /, ''));
+  } else {
+    // en-de: accept "das Haus" or "Haus", case insensitive
+    const german = currentQuestion.german;
+    const art = currentQuestion.article;
+    const full = art ? `${art} ${german}` : german;
+    correctAnswer = full;
+    const userN = normalize(userAnswer);
+    isCorrect = userN === normalize(full) || userN === normalize(german);
+  }
+
+  showResult(isCorrect, correctAnswer, input);
+}
+
+function checkArticle(chosen) {
+  vibratePattern('tap');
+  if (answered) return;
+  if (currentQuestion.type !== 'noun' || !currentQuestion.article) return;
+  answered = true;
+  const correct_art = currentQuestion.article;
+  const isCorrect = chosen === correct_art;
+
+  document.querySelectorAll('.article-btn').forEach(btn => {
+    const art = btn.textContent.trim().split('\n')[0].trim();
+    if (art === correct_art) btn.classList.add('correct');
+    else if (art === chosen && !isCorrect) btn.classList.add('wrong');
+  });
+
+  showResult(isCorrect, correct_art, null);
+  document.getElementById('next-btn').className = 'next-btn show';
+}
+
+function showResult(isCorrect, correctAnswer, inputEl) {
+  const fb = document.getElementById('feedback');
+  updateStrength(currentQuestion, isCorrect);
+  vibratePattern(isCorrect ? 'correct' : 'wrong');
+  if (isCorrect) {
+    correct++;
+    streak++;
+    if (inputEl) {
+      inputEl.classList.add('correct');
+      inputEl.closest('.card') && document.getElementById('practice-card').classList.add('flash-correct');
+      setTimeout(() => document.getElementById('practice-card').classList.remove('flash-correct'), 800);
+    }
+    fb.textContent = '✓ Correct! Well done.';
+    fb.className = 'feedback correct show';
+  } else {
+    wrong++;
+    streak = 0;
+    if (inputEl) {
+      inputEl.classList.add('wrong');
+      inputEl.classList.add('shake');
+      setTimeout(() => inputEl.classList.remove('shake'), 400);
+    }
+    fb.textContent = `✗ The correct answer is: ${correctAnswer}`;
+    fb.className = 'feedback wrong show';
+  }
+
+  document.getElementById('next-btn').className = 'next-btn show';
+  updateStats();
+  saveScore(); // saves both score and wordsSeen progress
+}
+
+function showRoundComplete() {
+  const card = document.getElementById('practice-card');
+  card.innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-family:'Playfair Display',serif;font-size:36px;color:var(--accent);margin-bottom:12px">Round Complete</div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text-muted);margin-bottom:32px">You've gone through all ${words.length} words. Starting a new round…</div>
+      <div style="display:flex;justify-content:center;gap:40px;margin-bottom:32px">
+        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--green)">${correct}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Correct</div></div>
+        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--red)">${wrong}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Wrong</div></div>
+        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--accent2)">${correct + wrong > 0 ? Math.round(correct/(correct+wrong)*100) : 0}%</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Accuracy</div></div>
+      </div>
+      <button onclick="startNextRound()" style="padding:14px 40px;background:var(--accent);color:#0f0e0c;border:none;border-radius:10px;cursor:pointer;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:0.5px">Start Next Round →</button>
+    </div>
+  `;
+}
+
+function startNextRound() {
+  resetScore();
+  // Rebuild card HTML
+  document.getElementById('practice-card').innerHTML = `
+    <div class="mode-badge" id="mode-label">Mixed Mode</div>
+    <div class="strength-bar" id="strength-bar">
+      <div class="strength-dot" id="sd-0"></div>
+      <div class="strength-dot" id="sd-1"></div>
+      <div class="strength-dot" id="sd-2"></div>
+      <div class="strength-dot" id="sd-3"></div>
+      <div class="strength-dot" id="sd-4"></div>
+      <span class="strength-label" id="strength-label">new</span>
+    </div>
+    <div class="question-area">
+      <div class="question-label" id="q-label">Translate to English:</div>
+      <div class="question-word" id="q-word">Loading...</div>
+    </div>
+    <div class="article-choices" id="article-choices" style="display:none">
+      <button class="article-btn der-btn" onclick="checkArticle('der')">der<span class="article-label">masculine</span></button>
+      <button class="article-btn die-btn" onclick="checkArticle('die')">die<span class="article-label">feminine</span></button>
+      <button class="article-btn das-btn" onclick="checkArticle('das')">das<span class="article-label">neuter</span></button>
+    </div>
+    <div class="voice-row">
+      <button class="voice-btn" id="voice-btn" onclick="speakQuestion()"><span class="voice-icon">🔊</span> Pronounce</button>
+      <label class="auto-speak-toggle"><input type="checkbox" id="auto-speak"> auto-play</label>
+    </div>
+    <div class="answer-row" id="answer-row">
+      <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">
+      <button class="submit-btn" onclick="checkAnswer()">Check</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>
+    <div class="progress-section">
+      <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen</div>
+      <div class="progress-text" style="color:var(--text-dim);font-size:11px;">Press Enter to check or continue</div>
+    </div>
+  `;
+  nextQuestion();
+}
+
+// ---- SETTINGS ----
+const THEME_KEY = 'wortschatz-theme-v1';
+
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn   = document.getElementById('settings-gear-btn');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  if (isOpen) {
+    // Position panel just below the gear button
+    const rect = btn.getBoundingClientRect();
+    panel.style.top  = (rect.bottom + 6) + 'px';
+    panel.style.right = (window.innerWidth - rect.right) + 'px';
+    updateThemeButtons();
+    updateHapticsButton();
+    setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+  } else {
+    document.getElementById('theme-submenu').classList.remove('open');
+  }
+}
+
+function closeSettings() {
+  document.getElementById('settings-panel').classList.remove('open');
+  document.getElementById('theme-submenu').classList.remove('open');
+  document.getElementById('settings-gear-btn').classList.remove('open');
+}
+
+function closeOnOutside(e) {
+  const wrap = document.querySelector('.settings-wrap');
+  if (!wrap.contains(e.target)) {
+    closeSettings();
+    document.removeEventListener('click', closeOnOutside);
+  }
+}
+
+function toggleHaptics() {
+  const isOff = localStorage.getItem('wortschatz-haptics') === 'off';
+  localStorage.setItem('wortschatz-haptics', isOff ? 'on' : 'off');
+  updateHapticsButton();
+  if (isOff) vibratePattern('preview');
+}
+
+function updateHapticsButton() {
+  const el = document.getElementById('haptics-state');
+  if (!el) return;
+  const isOff = localStorage.getItem('wortschatz-haptics') === 'off';
+  el.textContent = isOff ? 'OFF' : 'ON';
+  el.style.color = isOff ? 'var(--red)' : 'var(--green)';
+}
+
+function toggleThemeSubmenu() {
+  document.getElementById('theme-submenu').classList.toggle('open');
+}
+
+function openAbout() {
+  closeSettings();
+  document.getElementById('about-modal').classList.add('open');
+}
+
+function closeAbout() {
+  document.getElementById('about-modal').classList.remove('open');
+}
+
+function closeAboutOnOverlay(e) {
+  if (e.target === document.getElementById('about-modal')) closeAbout();
+}
+
+function setTheme(theme) {
+  if (theme === 'system') {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.removeItem(THEME_KEY);
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  updateThemeButtons();
+}
+
+function updateThemeButtons() {
+  const current = document.documentElement.getAttribute('data-theme') || 'system';
+  ['system', 'light', 'dark', 'pastel'].forEach(t => {
+    const btn = document.getElementById('theme-btn-' + t);
+    if (btn) btn.classList.toggle('active', current === t);
+  });
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+}
+
+// ---- VOICE / SPEECH ----
+const synth = window.speechSynthesis;
+let voices = [];
+
+function loadVoices() {
+  voices = synth.getVoices();
+  // Some browsers load voices async
+  if (voices.length === 0) {
+    synth.onvoiceschanged = () => { voices = synth.getVoices(); };
+  }
+}
+
+function getBestVoice(lang) {
+  // lang: 'de-DE' or 'en-US'
+  const exact = voices.find(v => v.lang === lang);
+  const partial = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+  return exact || partial || null;
+}
+
+function speakText(text, lang) {
+  if (!synth) return;
+  synth.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = 0.9;
+  const voice = getBestVoice(lang);
+  if (voice) utter.voice = voice;
+
+  const btn = document.getElementById('voice-btn');
+  if (btn) {
+    btn.classList.add('speaking');
+    utter.onend = () => btn.classList.remove('speaking');
+    utter.onerror = () => btn.classList.remove('speaking');
+  }
+  synth.speak(utter);
+}
+
+function speakQuestion() {
+  if (!currentQuestion) return;
+  if (!synth) {
+    document.getElementById('voice-btn')?.classList.add('unsupported');
+    return;
+  }
+  // Determine what text to speak and in which language
+  if (questionType === 'de-en') {
+    speakText(currentQuestion.german, 'de-DE');
+  } else if (questionType === 'en-de') {
+    speakText(currentQuestion.english.replace(/^to /, ''), 'en-US');
+  } else {
+    // article mode - speak the German word
+    speakText(currentQuestion.german, 'de-DE');
+  }
+}
+
+function autoSpeak() {
+  const auto = document.getElementById('auto-speak');
+  if (auto && auto.checked) speakQuestion();
+}
+
+loadVoices();
+
+function handleKey(e) {
+  if (e.key === 'Enter') {
+    if (!answered) checkAnswer();
+    else nextQuestion();
+  }
+}
+
+function updateStats() {
+  document.getElementById('score-correct').textContent = correct;
+  document.getElementById('score-wrong').textContent = wrong;
+  document.getElementById('score-streak').textContent = streak;
+}
+
+function updateProgress() {
+  const pct = words.length > 0 ? (wordsSeen.size / words.length * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('words-done').textContent = wordsSeen.size;
+  document.getElementById('words-total').textContent = words.length;
+}
+
+function toggleImport() {
+  const body = document.getElementById('import-body');
+  const arrow = document.getElementById('import-arrow');
+  const open = body.classList.toggle('open');
+  arrow.textContent = open ? '▼' : '▶';
+}
+
+
+
+function showImportFb(msg, type) {
+  const fb = document.getElementById('import-feedback');
+  fb.textContent = msg;
+  fb.className = 'import-feedback ' + type;
+  setTimeout(() => { fb.className = 'import-feedback'; }, 4000);
+}
+
+// ---- VIRTUAL SCROLL WORD LIST ----
+const ROW_HEIGHT = 44;
+const BUFFER = 4;
+
+function renderWordList() {
+  const scroll = document.getElementById('word-list-scroll');
+  const spacer = document.getElementById('word-list-spacer');
+  const body = document.getElementById('word-list-body');
+
+  if (words.length === 0) {
+    spacer.style.height = '60px';
+    body.innerHTML = '<div class="empty-state" style="position:absolute;top:0;left:0;right:0">No words yet. Add some above!</div>';
+    scroll.onscroll = null;
+    return;
+  }
+
+  const totalHeight = words.length * ROW_HEIGHT;
+  spacer.style.height = totalHeight + 'px';
+
+  function renderVisible() {
+    const scrollTop = scroll.scrollTop;
+    const viewHeight = scroll.clientHeight || 420;
+    const start = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - BUFFER);
+    const end = Math.min(words.length, Math.ceil((scrollTop + viewHeight) / ROW_HEIGHT) + BUFFER);
+
+    body.innerHTML = words.slice(start, end).map((w, rel) => {
+      const i = start + rel;
+      const artTag = w.type === 'noun'
+        ? `<span class="article-tag tag-${w.article}">${w.article}</span>`
+        : `<span class="article-tag tag-verb">verb</span>`;
+      const display = w.type === 'noun' ? `${w.article} ${w.german}` : w.german;
+      const wc = w.wrongCount || 0;
+      const errorBadge = wc > 0
+        ? `<span class="error-badge">${wc}</span>`
+        : `<span style="color:var(--text-dim);font-family:'DM Mono',monospace;font-size:11px">-</span>`;
+      return `
+        <div class="word-row" style="top:${i * ROW_HEIGHT}px">
+          <span style="color:var(--text-dim);font-family:'DM Mono',monospace;font-size:12px">${i+1}</span>
+          <span class="german">${display}</span>
+          <span class="english">${w.english}</span>
+          <span>${artTag}</span>
+          <span>${errorBadge}</span>
+          <span><button class="delete-btn" onclick="deleteWord(${i})">×</button></span>
+        </div>`;
+    }).join('');
+  }
+
+  scroll.onscroll = renderVisible;
+  renderVisible();
+}
+
+function toggleArticleField() {
+  const type = document.getElementById('word-type').value;
+  document.getElementById('article-field').style.display = type === 'noun' ? 'flex' : 'none';
+}
+
+
+
+function deleteWord(index) {
+  words.splice(index, 1);
+  saveWords();
+  renderWordList();
+  buildQueue();
+  updateProgress();
+}
+
+function addWord() {
+  const type = document.getElementById('word-type').value;
+  const article = type === 'noun' ? document.getElementById('word-article').value : null;
+  const german = document.getElementById('word-german').value.trim();
+  const english = document.getElementById('word-english').value.trim();
+  if (!german || !english) {
+    document.getElementById('word-german').style.borderColor = german ? '' : 'var(--red)';
+    document.getElementById('word-english').style.borderColor = english ? '' : 'var(--red)';
+    return;
+  }
+  const germanFinal = type === 'noun' ? german.charAt(0).toUpperCase() + german.slice(1) : german.toLowerCase();
+  const dup = words.some(w => normalizeWord(w.german) === normalizeWord(germanFinal));
+  if (dup) {
+    document.getElementById('word-german').style.borderColor = 'var(--red)';
+    return;
+  }
+  words.push({ type, article, german: germanFinal, english, strength: 0, wrongCount: 0 });
+  document.getElementById('word-german').value = '';
+  document.getElementById('word-english').value = '';
+  document.getElementById('word-german').style.borderColor = '';
+  document.getElementById('word-english').style.borderColor = '';
+  saveWords();
+  renderWordList();
+  buildQueue();
+  updateProgress();
+}
+
+function importWords() {
+  const raw = document.getElementById('import-textarea').value.trim();
+  if (!raw) { showImportFb('Nothing to import', 'err'); return; }
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const articleRegex = /^(der|die|das)\s+/i;
+  let added = 0, skipped = 0;
+
+  for (const line of lines) {
+    // Split on first delimiter only: -, =, |, or comma
+    const delimMatch = line.match(/^(.+?)\s*[-=|,]\s*(.+)$/);
+    if (!delimMatch) { skipped++; continue; }
+
+    let left = delimMatch[1].trim();
+    let right = delimMatch[2].trim();
+
+    let type, article = null, german, english;
+
+    // Check if left side starts with an article
+    const artMatch = left.match(articleRegex);
+    if (artMatch) {
+      article = artMatch[1].toLowerCase();
+      german = left.slice(artMatch[0].length).trim();
+      english = right;
+      type = 'noun';
+    } else {
+      // Check format: "Hund, der, dog" - article might be in right side if it's 1 word article
+      const rightParts = right.split(/\s*,\s*/);
+      if (rightParts.length >= 2 && ['der','die','das'].includes(rightParts[0].toLowerCase())) {
+        german = left;
+        article = rightParts[0].toLowerCase();
+        english = rightParts.slice(1).join(', ');
+        type = 'noun';
+      } else {
+        // No article found - treat as verb (safer than guessing noun)
+        german = left;
+        english = right;
+        type = 'verb';
+        article = null;
+      }
+    }
+
+    if (type === 'noun') german = german.charAt(0).toUpperCase() + german.slice(1);
+    else german = german.toLowerCase();
+
+    const dup = words.some(w => normalizeWord(w.german) === normalizeWord(german));
+    if (!dup && german && english) {
+      words.push({ type, article, german, english, strength: 0, wrongCount: 0 });
+      added++;
+    } else {
+      skipped++;
+    }
+  }
+
+  if (added > 0) {
+    saveWords();
+    renderWordList();
+    buildQueue();
+    updateProgress();
+    showImportFb(`✓ ${added} word${added > 1 ? 's' : ''} imported${skipped ? ' (' + skipped + ' skipped)' : ''}`, 'ok');
+    document.getElementById('import-textarea').value = '';
+  } else {
+    showImportFb('Could not parse any lines. Check format.', 'err');
+  }
+}
+
+// ---- PERSISTENT STORAGE ----
+const STORAGE_KEY = 'wortschatz-words-v1';
+
+function saveWords() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    showSaveIndicator();
+  } catch(e) {
+    alert('Storage limit reached. Please remove some words to continue saving.');
+  }
+}
+
+function loadWords() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (Array.isArray(saved) && saved.length > 0) {
+      // Ensure every word has strength field (backwards compat)
+      words = saved.map(w => ({ strength: 0, wrongCount: 0, ...w }));
+      return true;
+    }
+  } catch(e) { /* first run */ }
+  return false;
+}
+
+function showSaveIndicator() {
+  const el = document.getElementById('save-indicator');
+  if (!el) return;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 1800);
+}
+
+// ---- INIT ----
+function init() {
+  loadTheme();
+  loadWords();
+  loadScore();
+  buildQueue();
+  nextQuestion();
+  updateHardWordsPill();
+  updateHapticsButton();
+
+  const header = document.querySelector('header');
+  const ind = document.createElement('span');
+  ind.id = 'save-indicator';
+  ind.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--green);opacity:0;transition:opacity 0.5s;letter-spacing:1px;margin-left:8px;';
+  ind.textContent = '✓ saved';
+  header.appendChild(ind);
+}
+
+init();
+</script>
+
+<div class="modal-overlay" id="about-modal" onclick="closeAboutOnOverlay(event)">
+  <div class="modal-box">
+    <div class="modal-title">About</div>
+    <div class="modal-body">
+      <strong>Aung Myo Thant (Lucius Tariq)</strong>
+      <a href="mailto:tariqlwalker@outlook.com">tariqlwalker@outlook.com</a>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);">
+        Word list created by<br>Aung Myo Thant (Lucius Tariq)
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeAbout()">Close</button>
+  </div>
+</div>
+</body>
+</html>
