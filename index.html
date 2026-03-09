@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="netlify-email-obfuscation" content="off">
-<title>Wortschatz - Alpha v2.3</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<script>
-  // Apply saved theme before CSS paint to avoid flash
-  const _t = localStorage.getItem('wortschatz-theme-v1');
-  if (_t) document.documentElement.setAttribute('data-theme', _t);
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="netlify-email-obfuscation" content="off">
+  <title>WortTrek - Alpha v2.4</title>
+  <link href="[https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap](https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap)" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Apply saved theme before CSS paint to avoid flash
+    const _t = localStorage.getItem('wortschatz-theme-v1');
+    if (_t) document.documentElement.setAttribute('data-theme', _t);
+  </script>
 </head>
 <body>
 
 <header>
   <div>
-    <div class="logo">Wortschatz <span>// alpha v2.3</span></div>
+    <div class="logo">WortTrek <span>// alpha v2.4</span></div>
   </div>
   <div class="stats-bar">
     <div class="stats-box">
@@ -58,6 +58,7 @@
       </div>
       <button class="settings-item" onclick="resetScore(); closeSettings()">🔄 Reset</button>
       <button class="settings-item haptics-toggle" id="haptics-toggle" onclick="toggleHaptics()">📳 Haptics: <span id="haptics-state">ON</span></button>
+      <button class="settings-item" id="sound-toggle" onclick="toggleSound()">🔊 Sound: <span id="sound-state">ON</span></button>
       <button class="settings-item" onclick="openAbout()">ℹ️ About</button>
     </div>
   </div>

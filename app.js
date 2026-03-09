@@ -1,4 +1,4 @@
-// ---- WORD DATA (loaded from words.js) ----
+// –– WORD DATA (loaded from words.js) ––
 const DEFAULT_WORDS = (typeof WORD_DATA !== 'undefined') ? WORD_DATA : [];
 let words = [];
 
@@ -11,7 +11,10 @@ let wordsSeen = new Set();
 let sessionQueue = [];
 
 const SCORE_KEY = 'wortschatz-score-v1';
+const STORAGE_KEY = 'wortschatz-words-v1';
+const THEME_KEY = 'wortschatz-theme-v1';
 
+// –– SCORE & PERSISTENCE ––
 function saveScore() {
   try {
     localStorage.setItem(SCORE_KEY, JSON.stringify({
@@ -43,8 +46,15 @@ function resetScore() {
   updateHardWordsPill();
 }
 
+// –– UTILS ––
 function normalizeWord(str) {
   return str.trim().toLowerCase();
+}
+
+function normalize(str) {
+  return str.trim().toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss');
 }
 
 function shuffle(array) {
@@ -55,6 +65,7 @@ function shuffle(array) {
   return array;
 }
 
+// –– QUEUE LOGIC ––
 function buildQueue() {
   if (currentMode === 'hard') {
     const hardWords = words.filter(w => (w.wrongCount || 0) > 0)
@@ -62,7 +73,6 @@ function buildQueue() {
     sessionQueue = shuffle([...hardWords]);
     return;
   }
-  // SRS weighted queue
   const weighted = [];
   words.forEach(w => {
     const weight = Math.max(1, 5 - (w.strength || 0));
@@ -80,6 +90,7 @@ function updateHardWordsPill() {
   pill.title = count === 0 ? 'No mistakes yet - keep practising!' : `${count} word${count > 1 ? 's' : ''} you have got wrong`;
 }
 
+// –– HAPTICS ––
 function vibratePattern(type) {
   if (!('vibrate' in navigator)) return;
   if (localStorage.getItem('wortschatz-haptics') === 'off') return;
@@ -90,6 +101,73 @@ function vibratePattern(type) {
   if (type === 'preview') navigator.vibrate([30, 30, 30]);
 }
 
+// –– SOUND EFFECTS ––
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type) {
+  if (localStorage.getItem('wortschatz-sound') === 'off') return;
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+
+    if (type === 'correct') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+
+    } else if (type === 'wrong') {
+      [0, 0.12].forEach(offset => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sawtooth'; osc.frequency.value = 140;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.1);
+        osc.start(ctx.currentTime + offset);
+        osc.stop(ctx.currentTime + offset + 0.1);
+      });
+
+    } else if (type === 'streak') {
+      [523, 659, 784, 1047].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = ctx.currentTime + i * 0.08;
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        osc.start(t); osc.stop(t + 0.15);
+      });
+    }
+  } catch(e) {}
+}
+
+function toggleSound() {
+  const isOff = localStorage.getItem('wortschatz-sound') === 'off';
+  localStorage.setItem('wortschatz-sound', isOff ? 'on' : 'off');
+  updateSoundButton();
+  if (isOff) playSound('correct');
+}
+
+function updateSoundButton() {
+  const el = document.getElementById('sound-state');
+  if (!el) return;
+  const isOff = localStorage.getItem('wortschatz-sound') === 'off';
+  el.textContent = isOff ? 'OFF' : 'ON';
+  el.style.color = isOff ? 'var(--red)' : 'var(--green)';
+}
+
+// –– PRACTICE LOGIC ––
 function updateStrength(word, isCorrect) {
   const idx = words.findIndex(w => w.german === word.german);
   if (idx === -1) return;
@@ -139,7 +217,7 @@ function pickQuestionType(word) {
   if (currentMode === 'de-en') return 'de-en';
   if (currentMode === 'en-de') return 'en-de';
   if (currentMode === 'article') return 'article';
-  // mixed
+  
   const r = Math.random();
   if (r < 0.35) return 'de-en';
   if (r < 0.7) return 'en-de';
@@ -161,10 +239,6 @@ function nextQuestion() {
         document.getElementById('article-choices').style.display = 'none';
         return;
       }
-      wordsSeen.clear();
-      buildQueue();
-      showRoundComplete();
-      return;
     }
     wordsSeen.clear();
     buildQueue();
@@ -184,12 +258,10 @@ function nextQuestion() {
   document.getElementById('answer-input').className = 'answer-input';
   document.querySelectorAll('.article-btn').forEach(b => b.className = b.className.replace(/ correct| wrong/g, ''));
 
-  // Show/hide article buttons vs text input
   const isArticle = questionType === 'article';
   document.getElementById('article-choices').style.display = isArticle ? 'flex' : 'none';
   document.getElementById('answer-row').style.display = isArticle ? 'none' : 'flex';
 
-  // Build question display
   const modeLabels = { 'de-en': '🇩🇪 German → English', 'en-de': '🇬🇧 English → German', 'article': 'Der / Die / Das?', 'hard': '🔥 Hard Words' };
   document.getElementById('mode-label').textContent = currentMode === 'mixed' ? '🎲 Mixed - ' + modeLabels[questionType] : (modeLabels[currentMode] || modeLabels[questionType]);
 
@@ -219,12 +291,6 @@ function nextQuestion() {
   autoSpeak();
 }
 
-function normalize(str) {
-  return str.trim().toLowerCase()
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss');
-}
-
 function checkAnswer() {
   if (answered) { nextQuestion(); return; }
   const input = document.getElementById('answer-input');
@@ -241,7 +307,6 @@ function checkAnswer() {
     const variants = correctAnswer.split('/').map(v => normalize(v.trim()));
     isCorrect = variants.some(v => userN === v || userN.replace(/^to /, '') === v.replace(/^to /, ''));
   } else {
-    // en-de: accept "das Haus" or "Haus", case insensitive
     const german = currentQuestion.german;
     const art = currentQuestion.article;
     const full = art ? `${art} ${german}` : german;
@@ -275,13 +340,18 @@ function showResult(isCorrect, correctAnswer, inputEl) {
   const fb = document.getElementById('feedback');
   updateStrength(currentQuestion, isCorrect);
   vibratePattern(isCorrect ? 'correct' : 'wrong');
+  playSound(isCorrect ? 'correct' : 'wrong');
   if (isCorrect) {
     correct++;
     streak++;
+    if (streak > 0 && streak % 5 === 0) playSound('streak');
     if (inputEl) {
       inputEl.classList.add('correct');
-      inputEl.closest('.card') && document.getElementById('practice-card').classList.add('flash-correct');
-      setTimeout(() => document.getElementById('practice-card').classList.remove('flash-correct'), 800);
+      const card = document.getElementById('practice-card');
+      if (card) {
+        card.classList.add('flash-correct');
+        setTimeout(() => card.classList.remove('flash-correct'), 800);
+      }
     }
     fb.textContent = '✓ Correct! Well done.';
     fb.className = 'feedback correct show';
@@ -296,83 +366,77 @@ function showResult(isCorrect, correctAnswer, inputEl) {
     fb.textContent = `✗ The correct answer is: ${correctAnswer}`;
     fb.className = 'feedback wrong show';
   }
-
   document.getElementById('next-btn').className = 'next-btn show';
   updateStats();
-  saveScore(); // saves both score and wordsSeen progress
+  saveScore();
 }
 
 function showRoundComplete() {
   const card = document.getElementById('practice-card');
   card.innerHTML = `
-    <div style="text-align:center;padding:20px 0">
-      <div style="font-family:'Playfair Display',serif;font-size:36px;color:var(--accent);margin-bottom:12px">Round Complete</div>
-      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text-muted);margin-bottom:32px">You've gone through all ${words.length} words. Starting a new round…</div>
-      <div style="display:flex;justify-content:center;gap:40px;margin-bottom:32px">
-        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--green)">${correct}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Correct</div></div>
-        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--red)">${wrong}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Wrong</div></div>
-        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--accent2)">${correct + wrong > 0 ? Math.round(correct/(correct+wrong)*100) : 0}%</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Accuracy</div></div>
-      </div>
-      <button onclick="startNextRound()" style="padding:14px 40px;background:var(--accent);color:#0f0e0c;border:none;border-radius:10px;cursor:pointer;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:0.5px">Start Next Round →</button>
-    </div>
-  `;
+    <div style="text-align:center;padding:20px 0"> 
+      <div style="font-family:'Playfair Display',serif;font-size:36px;color:var(--accent);margin-bottom:12px">Round Complete</div> 
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text-muted);margin-bottom:32px">You've gone through all ${words.length} words. Starting a new round…</div> 
+      <div style="display:flex;justify-content:center;gap:40px;margin-bottom:32px"> 
+        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--green)">${correct}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Correct</div></div> 
+        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--red)">${wrong}</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Wrong</div></div> 
+        <div><div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--accent2)">${correct + wrong > 0 ? Math.round(correct/(correct+wrong)*100) : 0}%</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase">Accuracy</div></div> 
+      </div> 
+      <button onclick="startNextRound()" style="padding:14px 40px;background:var(--accent);color:#0f0e0c;border:none;border-radius:10px;cursor:pointer;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:0.5px">Start Next Round →</button> 
+    </div>`;
 }
 
 function startNextRound() {
   resetScore();
-  // Rebuild card HTML
   document.getElementById('practice-card').innerHTML = `
-    <div class="mode-badge" id="mode-label">Mixed Mode</div>
-    <div class="strength-bar" id="strength-bar">
-      <div class="strength-dot" id="sd-0"></div>
-      <div class="strength-dot" id="sd-1"></div>
-      <div class="strength-dot" id="sd-2"></div>
-      <div class="strength-dot" id="sd-3"></div>
-      <div class="strength-dot" id="sd-4"></div>
-      <span class="strength-label" id="strength-label">new</span>
-    </div>
-    <div class="question-area">
-      <div class="question-label" id="q-label">Translate to English:</div>
-      <div class="question-word" id="q-word">Loading...</div>
-    </div>
-    <div class="article-choices" id="article-choices" style="display:none">
-      <button class="article-btn der-btn" onclick="checkArticle('der')">der<span class="article-label">masculine</span></button>
-      <button class="article-btn die-btn" onclick="checkArticle('die')">die<span class="article-label">feminine</span></button>
-      <button class="article-btn das-btn" onclick="checkArticle('das')">das<span class="article-label">neuter</span></button>
-    </div>
-    <div class="voice-row">
-      <button class="voice-btn" id="voice-btn" onclick="speakQuestion()"><span class="voice-icon">🔊</span> Pronounce</button>
-      <label class="auto-speak-toggle"><input type="checkbox" id="auto-speak"> auto-play</label>
-    </div>
-    <div class="answer-row" id="answer-row">
-      <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">
-      <button class="submit-btn" onclick="checkAnswer()">Check</button>
-    </div>
-    <div class="feedback" id="feedback"></div>
-    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button>
-    <div class="progress-section">
-      <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen</div>
-      <div class="progress-text" style="color:var(--text-dim);font-size:11px;">Press Enter to check or continue</div>
-    </div>
-  `;
+    <div class="mode-badge" id="mode-label">Mixed Mode</div> 
+    <div class="strength-bar" id="strength-bar"> 
+      <div class="strength-dot" id="sd-0"></div> 
+      <div class="strength-dot" id="sd-1"></div> 
+      <div class="strength-dot" id="sd-2"></div> 
+      <div class="strength-dot" id="sd-3"></div> 
+      <div class="strength-dot" id="sd-4"></div> 
+      <span class="strength-label" id="strength-label">new</span> 
+    </div> 
+    <div class="question-area"> 
+      <div class="question-label" id="q-label">Translate to English:</div> 
+      <div class="question-word" id="q-word">Loading...</div> 
+    </div> 
+    <div class="article-choices" id="article-choices" style="display:none"> 
+      <button class="article-btn der-btn" onclick="checkArticle('der')">der<span class="article-label">masculine</span></button> 
+      <button class="article-btn die-btn" onclick="checkArticle('die')">die<span class="article-label">feminine</span></button> 
+      <button class="article-btn das-btn" onclick="checkArticle('das')">das<span class="article-label">neuter</span></button> 
+    </div> 
+    <div class="voice-row"> 
+      <button class="voice-btn" id="voice-btn" onclick="speakQuestion()"><span class="voice-icon">🔊</span> Pronounce</button> 
+      <label class="auto-speak-toggle"><input type="checkbox" id="auto-speak"> auto-play</label> 
+    </div> 
+    <div class="answer-row" id="answer-row"> 
+      <input type="text" class="answer-input" id="answer-input" placeholder="Type your answer..." onkeydown="handleKey(event)" inputmode="latin" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false"> 
+      <button class="submit-btn" onclick="checkAnswer()">Check</button> 
+    </div> 
+    <div class="feedback" id="feedback"></div> 
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Word →</button> 
+    <div class="progress-section"> 
+      <div class="progress-text"><strong id="words-done">0</strong> / <strong id="words-total">0</strong> words seen</div> 
+      <div class="progress-text" style="color:var(--text-dim);font-size:11px;">Press Enter to check or continue</div> 
+    </div>`;
   nextQuestion();
 }
 
-// ---- SETTINGS ----
-const THEME_KEY = 'wortschatz-theme-v1';
-
+// –– SETTINGS ––
 function toggleSettings() {
   const panel = document.getElementById('settings-panel');
   const btn   = document.getElementById('settings-gear-btn');
   const isOpen = panel.classList.toggle('open');
   btn.classList.toggle('open', isOpen);
   if (isOpen) {
-    // Position panel just below the gear button
     const rect = btn.getBoundingClientRect();
     panel.style.top  = (rect.bottom + 6) + 'px';
     panel.style.right = (window.innerWidth - rect.right) + 'px';
     updateThemeButtons();
     updateHapticsButton();
+    updateSoundButton();
     setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
   } else {
     document.getElementById('theme-submenu').classList.remove('open');
@@ -387,7 +451,7 @@ function closeSettings() {
 
 function closeOnOutside(e) {
   const wrap = document.querySelector('.settings-wrap');
-  if (!wrap.contains(e.target)) {
+  if (wrap && !wrap.contains(e.target)) {
     closeSettings();
     document.removeEventListener('click', closeOnOutside);
   }
@@ -449,20 +513,18 @@ function loadTheme() {
   if (saved) document.documentElement.setAttribute('data-theme', saved);
 }
 
-// ---- VOICE / SPEECH ----
+// –– VOICE ––
 const synth = window.speechSynthesis;
 let voices = [];
 
 function loadVoices() {
   voices = synth.getVoices();
-  // Some browsers load voices async
   if (voices.length === 0) {
     synth.onvoiceschanged = () => { voices = synth.getVoices(); };
   }
 }
 
 function getBestVoice(lang) {
-  // lang: 'de-DE' or 'en-US'
   const exact = voices.find(v => v.lang === lang);
   const partial = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
   return exact || partial || null;
@@ -492,14 +554,10 @@ function speakQuestion() {
     document.getElementById('voice-btn')?.classList.add('unsupported');
     return;
   }
-  // Determine what text to speak and in which language
-  if (questionType === 'de-en') {
+  if (questionType === 'de-en' || questionType === 'article') {
     speakText(currentQuestion.german, 'de-DE');
-  } else if (questionType === 'en-de') {
-    speakText(currentQuestion.english.replace(/^to /, ''), 'en-US');
   } else {
-    // article mode - speak the German word
-    speakText(currentQuestion.german, 'de-DE');
+    speakText(currentQuestion.english.replace(/^to /, ''), 'en-US');
   }
 }
 
@@ -508,8 +566,7 @@ function autoSpeak() {
   if (auto && auto.checked) speakQuestion();
 }
 
-loadVoices();
-
+// –– UI & STATS ––
 function handleKey(e) {
   if (e.key === 'Enter') {
     if (!answered) checkAnswer();
@@ -525,28 +582,13 @@ function updateStats() {
 
 function updateProgress() {
   const pct = words.length > 0 ? (wordsSeen.size / words.length * 100) : 0;
-  document.getElementById('progress-fill').style.width = pct + '%';
+  const fill = document.getElementById('progress-fill');
+  if (fill) fill.style.width = pct + '%';
   document.getElementById('words-done').textContent = wordsSeen.size;
   document.getElementById('words-total').textContent = words.length;
 }
 
-function toggleImport() {
-  const body = document.getElementById('import-body');
-  const arrow = document.getElementById('import-arrow');
-  const open = body.classList.toggle('open');
-  arrow.textContent = open ? '▼' : '▶';
-}
-
-
-
-function showImportFb(msg, type) {
-  const fb = document.getElementById('import-feedback');
-  fb.textContent = msg;
-  fb.className = 'import-feedback ' + type;
-  setTimeout(() => { fb.className = 'import-feedback'; }, 4000);
-}
-
-// ---- VIRTUAL SCROLL WORD LIST ----
+// –– WORD LIST & MANAGEMENT ––
 const ROW_HEIGHT = 44;
 const BUFFER = 4;
 
@@ -554,6 +596,7 @@ function renderWordList() {
   const scroll = document.getElementById('word-list-scroll');
   const spacer = document.getElementById('word-list-spacer');
   const body = document.getElementById('word-list-body');
+  if (!scroll || !spacer || !body) return;
 
   if (words.length === 0) {
     spacer.style.height = '60px';
@@ -602,8 +645,6 @@ function toggleArticleField() {
   document.getElementById('article-field').style.display = type === 'noun' ? 'flex' : 'none';
 }
 
-
-
 function deleteWord(index) {
   words.splice(index, 1);
   saveWords();
@@ -639,6 +680,21 @@ function addWord() {
   updateProgress();
 }
 
+// –– IMPORT ––
+function toggleImport() {
+  const body = document.getElementById('import-body');
+  const arrow = document.getElementById('import-arrow');
+  const open = body.classList.toggle('open');
+  arrow.textContent = open ? '▼' : '▶';
+}
+
+function showImportFb(msg, type) {
+  const fb = document.getElementById('import-feedback');
+  fb.textContent = msg;
+  fb.className = 'import-feedback ' + type;
+  setTimeout(() => { fb.className = 'import-feedback'; }, 4000);
+}
+
 function importWords() {
   const raw = document.getElementById('import-textarea').value.trim();
   if (!raw) { showImportFb('Nothing to import', 'err'); return; }
@@ -648,16 +704,13 @@ function importWords() {
   let added = 0, skipped = 0;
 
   for (const line of lines) {
-    // Split on first delimiter only: -, =, |, or comma
     const delimMatch = line.match(/^(.+?)\s*[-=|,]\s*(.+)$/);
     if (!delimMatch) { skipped++; continue; }
 
     let left = delimMatch[1].trim();
     let right = delimMatch[2].trim();
-
     let type, article = null, german, english;
 
-    // Check if left side starts with an article
     const artMatch = left.match(articleRegex);
     if (artMatch) {
       article = artMatch[1].toLowerCase();
@@ -665,7 +718,6 @@ function importWords() {
       english = right;
       type = 'noun';
     } else {
-      // Check format: "Hund, der, dog" - article might be in right side if it's 1 word article
       const rightParts = right.split(/\s*,\s*/);
       if (rightParts.length >= 2 && ['der','die','das'].includes(rightParts[0].toLowerCase())) {
         german = left;
@@ -673,7 +725,6 @@ function importWords() {
         english = rightParts.slice(1).join(', ');
         type = 'noun';
       } else {
-        // No article found - treat as verb (safer than guessing noun)
         german = left;
         english = right;
         type = 'verb';
@@ -705,12 +756,8 @@ function importWords() {
   }
 }
 
-// ---- PERSISTENT STORAGE ----
-const STORAGE_KEY = 'wortschatz-words-v1';
-
-function wordKey(w) {
-  return (w.german || '').toLowerCase().trim();
-}
+// –– PERSISTENCE ––
+function wordKey(w) { return (w.german || '').toLowerCase().trim(); }
 
 function saveWords() {
   try {
@@ -726,12 +773,9 @@ function saveWords() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, deletedKeys, userAdded, strengthMap }));
     showSaveIndicator();
   } catch(e) {
-    alert('Storage limit reached. Please remove some words to continue saving.');
+    alert('Storage limit reached. Please remove some words.');
   }
 }
-
-
-
 
 function loadWords() {
   try {
@@ -754,11 +798,10 @@ function loadWords() {
       words = saved.map(w => ({ strength: 0, wrongCount: 0, ...w }));
       return true;
     }
-  } catch(e) { /* first run */ }
+  } catch(e) {}
   words = DEFAULT_WORDS.map(w => ({ ...w }));
   return false;
 }
-
 
 function showSaveIndicator() {
   const el = document.getElementById('save-indicator');
@@ -768,22 +811,26 @@ function showSaveIndicator() {
   el._t = setTimeout(() => { el.style.opacity = '0'; }, 1800);
 }
 
-// ---- INIT ----
+// –– INIT ––
 function init() {
   loadTheme();
   loadWords();
   loadScore();
+  loadVoices();
   buildQueue();
   nextQuestion();
   updateHardWordsPill();
   updateHapticsButton();
+  updateSoundButton();
 
   const header = document.querySelector('header');
-  const ind = document.createElement('span');
-  ind.id = 'save-indicator';
-  ind.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--green);opacity:0;transition:opacity 0.5s;letter-spacing:1px;margin-left:8px;';
-  ind.textContent = '✓ saved';
-  header.appendChild(ind);
+  if (header) {
+    const ind = document.createElement('span');
+    ind.id = 'save-indicator';
+    ind.style.cssText = 'font-family:"DM Mono",monospace;font-size:10px;color:var(--green);opacity:0;transition:opacity 0.5s;letter-spacing:1px;margin-left:8px;';
+    ind.textContent = '✓ saved';
+    header.appendChild(ind);
+  }
 }
 
 init();
