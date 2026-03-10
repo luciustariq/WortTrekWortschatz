@@ -284,6 +284,7 @@ function nextQuestion() {
     document.getElementById('next-btn').className = 'next-btn';
     document.getElementById('answer-input').value = '';
     document.getElementById('answer-input').className = 'answer-input';
+    document.getElementById('answer-input').disabled = false;
     document.querySelectorAll('.article-btn').forEach(b => b.className = b.className.replace(/ correct| wrong/g, ''));
 
     const isArticle = questionType === 'article';
