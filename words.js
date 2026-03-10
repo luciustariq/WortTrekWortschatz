@@ -5,8 +5,8 @@
 
 const WORD_DATA = [
 
-// === IDENTITY & REGISTRATION ===
-{ type: 'noun', article: 'der', german: 'Name', english: 'name', strength: 0, wrongCount: 0 },
+    // === IDENTITY & REGISTRATION ===
+    { type: 'noun', article: 'der', german: 'Name', english: 'name', strength: 0, wrongCount: 0 },
 { type: 'noun', article: 'der', german: 'Vorname', english: 'first name', strength: 0, wrongCount: 0 },
 { type: 'noun', article: 'der', german: 'Nachname', english: 'last name', strength: 0, wrongCount: 0 },
 { type: 'noun', article: 'der', german: 'Familienname', english: 'family name', strength: 0, wrongCount: 0 },
