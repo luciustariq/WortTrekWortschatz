@@ -29,7 +29,7 @@ WortTrek is built to create a “Flow-State” learning environment, solving rea
 - **Lenient Checking:** Auto-forgiveness for capitalization and common typos to keep the user focused on the language, not the keyboard.
 - **Dynamic Weighting:** Tracks wrong counts to intelligently resurface difficult words.
 
-### 🎨 Feedback System (planned v2.6)
+### 🎨 Feedback System 
 
 - **The Green Flow:** 1s auto-advance for perfect matches.
 - **The Amber Peek:** 1.5s auto-advance for small typos, showing the correction without stopping the session.
